@@ -39,7 +39,7 @@ function App() {
   }, []);
 
   const saveUserOnStrapi = async (user: any) => {
-    var url = `http://localhost:1337/api/app-users`;
+    var url = `http://ec2-34-227-78-171.compute-1.amazonaws.com:1337/api/app-users`;
     var config = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
