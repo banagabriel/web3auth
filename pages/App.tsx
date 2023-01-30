@@ -13,7 +13,7 @@ function App() {
     const init = async () => {
       try {
         const web3auth = new Web3Auth({
-          clientId, 
+          clientId,
           web3AuthNetwork: "testnet", // mainnet, aqua, celeste, cyan or testnet
           chainConfig: {
             chainNamespace: CHAIN_NAMESPACES.SOLANA,
@@ -38,6 +38,20 @@ function App() {
     init();
   }, []);
 
+  const saveUserOnStrapi = async (user: any) => {
+    var url = `http://ec2-34-227-78-171.compute-1.amazonaws.com:1337/api/app-users`;
+    var config = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        data: user
+      }),
+    };
+    var saveUserFetch = await fetch(url, config)
+    var saveUserResponse = await saveUserFetch.json()
+    console.log(saveUserResponse);
+  }
+
   const login = async () => {
     if (!web3auth) {
       console.log("web3auth not initialized yet");
@@ -45,7 +59,22 @@ function App() {
     }
     const web3authProvider = await web3auth.connect();
     setProvider(web3authProvider);
+    if (!web3authProvider) return;
+    const userInformation = await getUserInfo();
+    const address = await getAccounts(web3authProvider);
+    const user = {
+      name: userInformation?.name,
+      phone: '+59892101759',
+      email: userInformation?.email,
+      walletAddress: address[0],
+      randomImage: userInformation?.profileImage
+    }
+    console.log(user);
+    saveUserOnStrapi(user)
+    
+    console.log(provider);
   };
+
 
   const authenticateUser = async () => {
     if (!web3auth) {
@@ -63,6 +92,7 @@ function App() {
     }
     const user = await web3auth.getUserInfo();
     console.log(user);
+    return user
   };
 
   const logout = async () => {
@@ -74,14 +104,14 @@ function App() {
     setProvider(null);
   };
 
-  const getAccounts = async () => {
-    if (!provider) {
-      console.log("provider not initialized yet");
-      return;
-    }
-    const rpc = new SolanaRpc(provider);
+  const getAccounts = async (web3authProvider: any) => {
+    // if (!provider) {
+    //   console.log("provider not initialized yet");
+    //   return;
+    // }
+    const rpc = new SolanaRpc(web3authProvider);
     const address = await rpc.getAccounts();
-    console.log(address);
+    return address
   };
 
   const getBalance = async () => {
@@ -91,6 +121,8 @@ function App() {
     }
     const rpc = new SolanaRpc(provider);
     const balance = await rpc.getBalance();
+    console.log(provider);
+    
     console.log(balance);
   };
 
@@ -137,11 +169,11 @@ function App() {
             Get ID Token
           </button>
         </div>
-        <div>
+        {/* <div>
           <button onClick={getAccounts} className="card">
             Get Account
           </button>
-        </div>
+        </div> */}
         <div>
           <button onClick={getBalance} className="card">
             Get Balance
